@@ -1,0 +1,266 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase, type Incident, type Comment, type WatchZone, type Profile } from "./supabase";
+import { getOrCreateClientId } from "./clientId";
+
+export interface DataState {
+  incidents: Incident[];
+  comments: Comment[];
+  zones: WatchZone[];
+  profile: Profile | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useWatchTowerData(userId: string | null) {
+  const clientIdRef = useRef<string>(getOrCreateClientId());
+  const clientId = clientIdRef.current;
+
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [zones, setZones] = useState<WatchZone[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initial load — re-runs when auth state changes (userId flips)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const zoneQuery = userId
+        ? supabase.from("watch_zones").select("*").eq("user_id", userId)
+        : supabase.from("watch_zones").select("*").eq("client_id", clientId);
+      const profileQuery = userId
+        ? supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle()
+        : supabase.from("profiles").select("*").eq("client_id", clientId).maybeSingle();
+
+      const [inc, com, zn, pf] = await Promise.all([
+        supabase.from("incidents").select("*").order("created_at", { ascending: false }),
+        supabase.from("comments").select("*").order("created_at", { ascending: true }),
+        zoneQuery,
+        profileQuery,
+      ]);
+      if (cancelled) return;
+      if (inc.error || com.error || zn.error) {
+        setError(inc.error?.message || com.error?.message || zn.error?.message || "Load failed");
+      }
+      setIncidents((inc.data as Incident[]) || []);
+      setComments((com.data as Comment[]) || []);
+      setZones((zn.data as WatchZone[]) || []);
+      setProfile((pf.data as Profile) || null);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [clientId, userId]);
+
+  // Realtime subscriptions — sync across all clients instantly
+  useEffect(() => {
+    const incChannel = supabase
+      .channel("incidents-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "incidents" },
+        (payload) => {
+          setIncidents((prev) => {
+            if (prev.some((i) => i.id === payload.new.id)) return prev;
+            return [payload.new as Incident, ...prev];
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "incidents" },
+        (payload) => {
+          setIncidents((prev) => prev.map((i) => (i.id === payload.new.id ? (payload.new as Incident) : i)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "incidents" },
+        (payload) => {
+          setIncidents((prev) => prev.filter((i) => i.id !== payload.old.id));
+        }
+      )
+      .subscribe();
+
+    const comChannel = supabase
+      .channel("comments-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments" },
+        (payload) => {
+          setComments((prev) => {
+            if (prev.some((c) => c.id === payload.new.id)) return prev;
+            return [...prev, payload.new as Comment];
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "comments" },
+        (payload) => {
+          setComments((prev) => prev.filter((c) => c.id !== payload.old.id));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(incChannel);
+      supabase.removeChannel(comChannel);
+    };
+  }, []);
+
+  // Actions
+  const addIncident = useCallback(
+    async (input: Omit<Incident, "id" | "created_at" | "updated_at" | "status" | "verifications" | "reporter_id" | "user_id">) => {
+      const row: Record<string, unknown> = { ...input, reporter_id: clientId };
+      if (userId) row.user_id = userId;
+      const { data, error } = await supabase
+        .from("incidents")
+        .insert(row)
+        .select("*")
+        .single();
+      if (error) throw error;
+      await supabase.rpc("bump_karma", { p_client: clientId, p_user: userId ?? null }).then(() => {});
+      setProfile((prev) => (prev ? { ...prev, karma: prev.karma + 10 } : prev));
+      return data as Incident;
+    },
+    [clientId, userId]
+  );
+
+  const resolveIncident = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from("incidents")
+      .update({ status: "resolved", updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw error;
+    setIncidents((prev) => prev.map((i) => (i.id === id ? { ...i, status: "resolved" } : i)));
+  }, []);
+
+  const verifyIncident = useCallback(async (id: string) => {
+    const { data, error } = await supabase.rpc("increment_verification", { p_id: id });
+    if (error) throw error;
+    const newCount = data as number;
+    setIncidents((prev) => prev.map((i) => (i.id === id ? { ...i, verifications: newCount } : i)));
+  }, []);
+
+  const addComment = useCallback(
+    async (incidentId: string, body: string, authorName: string) => {
+      const row: Record<string, unknown> = {
+        incident_id: incidentId,
+        body,
+        author_name: authorName || "Neighbor",
+        author_id: clientId,
+      };
+      if (userId) row.user_id = userId;
+      const { data, error } = await supabase
+        .from("comments")
+        .insert(row)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as Comment;
+    },
+    [clientId, userId]
+  );
+
+  const addZone = useCallback(
+    async (zip: string, label: string) => {
+      const row: Record<string, unknown> = { zip_code: zip, label };
+      if (userId) {
+        row.user_id = userId;
+      } else {
+        row.client_id = clientId;
+      }
+      const { data, error } = await supabase
+        .from("watch_zones")
+        .insert(row)
+        .select("*")
+        .single();
+      if (error) throw error;
+      setZones((prev) => [...prev, data as WatchZone]);
+      return data as WatchZone;
+    },
+    [clientId, userId]
+  );
+
+  const removeZone = useCallback(async (zoneId: string) => {
+    const { error } = await supabase.from("watch_zones").delete().eq("id", zoneId);
+    if (error) throw error;
+    setZones((prev) => prev.filter((z) => z.id !== zoneId));
+  }, []);
+
+  const updateProfileName = useCallback(
+    async (name: string) => {
+      if (userId) {
+        const { data: existing, error: selErr } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (selErr) throw selErr;
+        let data, error;
+        if (existing) {
+          ({ data, error } = await supabase
+            .from("profiles")
+            .update({ display_name: name })
+            .eq("user_id", userId)
+            .select("*")
+            .single());
+        } else {
+          ({ data, error } = await supabase
+            .from("profiles")
+            .insert({ user_id: userId, display_name: name })
+            .select("*")
+            .single());
+        }
+        if (error) throw error;
+        setProfile(data as Profile);
+      } else {
+        const { data: existing, error: selErr } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("client_id", clientId)
+          .maybeSingle();
+        if (selErr) throw selErr;
+        let data, error;
+        if (existing) {
+          ({ data, error } = await supabase
+            .from("profiles")
+            .update({ display_name: name })
+            .eq("client_id", clientId)
+            .select("*")
+            .single());
+        } else {
+          ({ data, error } = await supabase
+            .from("profiles")
+            .insert({ client_id: clientId, display_name: name })
+            .select("*")
+            .single());
+        }
+        if (error) throw error;
+        setProfile(data as Profile);
+      }
+    },
+    [clientId, userId]
+  );
+
+  return {
+    clientId,
+    incidents,
+    comments,
+    zones,
+    profile,
+    loading,
+    error,
+    addIncident,
+    resolveIncident,
+    verifyIncident,
+    addComment,
+    addZone,
+    removeZone,
+    updateProfileName,
+  };
+}
