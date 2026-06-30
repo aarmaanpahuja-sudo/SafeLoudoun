@@ -263,7 +263,7 @@ export default function App() {
             />
           ) : view === "map" ? (
             <div className="h-[calc(100vh-13rem)] w-full overflow-hidden rounded-2xl border border-slate-800 md:h-[calc(100vh-9.5rem)]">
-              <MapView incidents={data.incidents} activeZip={activeZip} onResolve={data.resolveIncident} />
+              <MapView incidents={filteredIncidents} activeZip={activeZip} onResolve={data.resolveIncident} />
             </div>
           ) : view === "zones" ? (
             <ZonesView
