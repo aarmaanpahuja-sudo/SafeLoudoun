@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   LogIn,
   LogOut,
+  Info,
 } from "lucide-react";
 import { useWatchTowerData } from "./lib/useWatchTowerData";
 import { useAuth } from "./lib/useAuth";
@@ -24,13 +25,14 @@ import ReportModal from "./components/ReportModal";
 import MapView from "./components/MapView";
 import AuthModal from "./components/AuthModal";
 
-type View = "feed" | "map" | "zones" | "analytics";
+type View = "feed" | "map" | "zones" | "analytics" | "about us";
 
 const NAV: { id: View; label: string; icon: typeof Home }[] = [
   { id: "feed", label: "Feed", icon: Home },
   { id: "map", label: "Live Map", icon: MapIcon },
   { id: "zones", label: "Watch Zones", icon: SettingsIcon },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "about", label: "About", icon: Info },
 ];
 
 export default function App() {
@@ -232,7 +234,7 @@ export default function App() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 md:pb-6">
-          {data.loading ? (
+                    {data.loading ? (
             <div className="flex h-full items-center justify-center">
               <div className="text-sm text-slate-500">Loading your community…</div>
             </div>
@@ -264,14 +266,43 @@ export default function App() {
               onRemoveZone={data.removeZone}
               onUpdateName={data.updateProfileName}
             />
-          ) : (
+          ) : view === "analytics" ? (
             <AnalyticsView
-  incidents={activeZip ? filteredIncidents : data.incidents}
-  activeCount={activeCount}
-  resolvedCount={resolvedCount}
-  zones={data.zones}
-/>
-          )}
+              incidents={activeZip ? filteredIncidents : data.incidents}
+              activeCount={activeCount}
+              resolvedCount={resolvedCount}
+              zones={data.zones}
+            />
+          ) : view === "about" ? (
+            // ==================== ABOUT PAGE ====================
+            <div className="mx-auto max-w-2xl p-6 space-y-8">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">About WatchTower</h1>
+                <p className="text-slate-400">
+                  WatchTower is a community-driven safety platform that helps neighbors 
+                  stay informed and look out for each other in real time.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-white">How it works</h2>
+                <ul className="space-y-2 text-slate-300 list-disc list-inside">
+                  <li>Neighbors post reports about local incidents</li>
+                  <li>Others can verify reports and add updates</li>
+                  <li>Everyone sees incidents only in their watch zones</li>
+                  <li>Earn karma by contributing to your community</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-2">Our Mission</h2>
+                <p className="text-slate-300">
+                  We believe that safer neighborhoods start with better information. 
+                  By sharing what we see, we can all look out for each other.
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Mobile Bottom Nav */}
