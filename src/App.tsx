@@ -25,7 +25,7 @@ import ReportModal from "./components/ReportModal";
 import MapView from "./components/MapView";
 import AuthModal from "./components/AuthModal";
 
-type View = "feed" | "map" | "zones" | "analytics" | "about us";
+type View = "feed" | "map" | "zones" | "analytics" | "about";
 
 const NAV: { id: View; label: string; icon: typeof Home }[] = [
   { id: "feed", label: "Feed", icon: Home },
@@ -62,10 +62,16 @@ export default function App() {
   if (statusFilter !== "all") {
     list = list.filter((i) => i.status === statusFilter);
   }
-  if (search.trim()) {
-    const q = search.toLowerCase();
-    list = list.filter(/* search logic */);
-  }
+if (search.trim()) {
+  const q = search.toLowerCase();
+  list = list.filter(
+    (i) =>
+      i.title.toLowerCase().includes(q) ||
+      (i.description || "").toLowerCase().includes(q) ||
+      (i.location_description || "").toLowerCase().includes(q) ||
+      i.zip_code.includes(q)
+  );
+}
 
   return list;
 }, [data.incidents, data.zones, activeZip, statusFilter, search]);
