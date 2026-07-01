@@ -113,7 +113,7 @@ export function useWatchTowerData(userId: string | null) {
   }, []);
 
   // Actions
-        const addIncident = useCallback(
+          const addIncident = useCallback(
     async (input: Omit<Incident, "id" | "created_at" | "updated_at" | "status" | "verifications" | "reporter_id" | "user_id">) => {
       const row: Record<string, unknown> = { ...input, reporter_id: clientId };
       if (userId) row.user_id = userId;
@@ -126,8 +126,11 @@ export function useWatchTowerData(userId: string | null) {
 
       if (error) throw error;
 
-      // Add the real incident from the database directly to the list
-      setIncidents((prev) => [insertedIncident as Incident, ...prev]);
+      // Add the new incident and remove any duplicate
+      setIncidents((prev) => {
+        const filtered = prev.filter((i) => i.id !== insertedIncident.id);
+        return [insertedIncident as Incident, ...filtered];
+      });
 
       // Update karma
       await supabase.rpc("bump_karma", { p_client: clientId, p_user: userId ?? null });
