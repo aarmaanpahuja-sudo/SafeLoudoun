@@ -1,3 +1,4 @@
+import Footer from "./components/Footer";
 import { useMemo, useState } from "react";
 import {
   Home,
@@ -240,6 +241,7 @@ if (search.trim()) {
         )}
 
         {/* Content */}
+                {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 md:pb-6">
                     {data.loading ? (
             <div className="flex h-full items-center justify-center">
@@ -286,11 +288,10 @@ if (search.trim()) {
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">About SafeLoudoun</h1>
                 <p className="text-slate-400">
-                  SafeLoudoun is a community-driven safety platform that helps neighbors 
+                  SafeLoudoun is a community-driven safety platform that helps neighbors
                   stay informed and look out for each other in real time. While we designed this app for Loudoun, we designed it to work in any U.S. community.
                 </p>
               </div>
-
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-white">How it works</h2>
                 <ul className="space-y-2 text-slate-300 list-disc list-inside">
@@ -300,34 +301,29 @@ if (search.trim()) {
                   <li>Earn karma by contributing to your community</li>
                 </ul>
               </div>
-
               <div>
                 <h2 className="text-xl font-semibold text-white mb-2">Our Mission</h2>
                 <p className="text-slate-300">
-                  We believe that safer neighborhoods start with better information. 
+                  We believe that safer neighborhoods start with better information.
                   By sharing what we see, we can all look out for each other.
                 </p>
               </div>
-
-
               <div>
                 <h2 className="text-xl font-semibold text-white mb-2">About Us</h2>
                 <p className="text-slate-300">
                   You may be wondering, “What exactly is this project?” To answer your question, SafeLoudoun is a project created for the Step Up Loudoun Youth Competition by 9th graders Aarmaan Pahuja and Aditya Ghosh, along with 7th graders Abhir Pahuja and Ayaan Priyal.
-
 We all live in communities where neighbors look out for each other, but we noticed that there was not an easy way for people to quickly share important local updates. Whether it is an unattended package, a lost pet, suspicious activity, vandalism, or a request for a safe walk, important information can easily go unnoticed. We wanted to create a platform that helps communities stay connected, informed, and safer.
-
 SafeLoudoun is a real-time neighborhood safety platform where residents can report and track local incidents within their community. Users can view active reports, receive updates, communicate through comments, verify incidents, and monitor specific watch zones that matter to them. By making it easier for neighbors to work together, SafeLoudoun helps communities respond faster and support each other.
-
 However, technology alone cannot create a safer community. SafeLoudoun is designed to encourage awareness, responsibility, and cooperation between neighbors. The goal is not to expose problems, but to give communities the tools they need to help one another and prevent small issues from becoming bigger ones.
-
 Through this project, we hope to show how technology can bring people together and create stronger, more connected neighborhoods.
-
                 </p>
               </div>
             </div>
           ) : null}
         </div>
+
+        {/* ✅ Footer added here */}
+        <Footer />
 
         {/* Mobile Bottom Nav */}
         <nav className="flex items-stretch border-t border-slate-800 bg-slate-900/95 backdrop-blur-md md:hidden">
