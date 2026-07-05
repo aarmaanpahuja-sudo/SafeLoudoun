@@ -96,7 +96,6 @@ if (search.trim()) {
   <div>
     <h1 className="text-base font-semibold tracking-tight text-white">SafeLoudoun</h1>
     <p className="text-[11px] text-slate-400">Real-time neighborhood safety</p>
-    <p className="text-[10px] text-slate-500">Built for Loudoun. Designed for every community.</p>
   </div>
 </div>
 
