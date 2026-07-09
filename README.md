@@ -103,7 +103,7 @@ src/
 │   ├── geo.ts               # Zip code geocoding + map utilities
 │   ├── supabase.ts          # Client + types
 │   ├── useAuth.ts           # Auth hook (sign in/up/out, session)
-│   └── useWatchTowerData.ts # Data hook (incidents, comments, zones, profile)          #The name of this file is WatchTower because that was the old website name
+│   └── useWatchTowerData.ts # Data hook (incidents, comments, zones, profile). #WatchTower was the old website name
 └── App.tsx                  # Main app shell with nav + views
 ```
 
