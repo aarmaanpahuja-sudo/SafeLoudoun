@@ -8,7 +8,7 @@ Website: https://safeloudoun.vercel.app
 
 - **Live incident feed** — Browse active, resolved, or all alerts filtered by your watch zones
 - **Interactive live map** — Real-time map of active incidents with category-colored pins, coordinates on click, and one-tap resolve
-- **File a report** — Two-step modal: pick a category, add details, capture GPS location (optional), and post to your zip code community
+- **File a report** — Two-steps: pick a category, add details, capture GPS location (optional), and post to your zip code community
 - **Watch zones** — Monitor any US zip code. Filter the feed and map to only show what matters to you
 - **Neighbor karma** — Earn +10 karma for every report you file. Your score is saved with your account
 - **Community verification** — Neighbors can verify reports and mark them as resolved
