@@ -94,7 +94,7 @@ if (search.trim()) {
     <Shield size={20} />
   </span>
   <div>
-    <h1 className="text-base font-semibold tracking-tight text-white">SafeCircle</h1>
+    <h1 className="text-base font-semibold tracking-tight text-white">SafeLoudoun</h1>
     <p className="text-[11px] text-slate-400">Real-time neighborhood safety</p>
   </div>
 </div>
@@ -285,9 +285,9 @@ if (search.trim()) {
             // ==================== ABOUT PAGE ====================
             <div className="mx-auto max-w-2xl p-6 space-y-8">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">About SafeCircle</h1>
+                <h1 className="text-3xl font-bold text-white mb-2">About SafeLoudoun</h1>
                 <p className="text-slate-400">
-                  SafeCircle is a community-driven safety platform that helps neighbors
+                  SafeLoudoun is a community-driven safety platform that helps neighbors
                   stay informed and look out for each other in real time. While we designed this app for Loudoun, we designed it to work in any U.S. community.
                 </p>
               </div>
@@ -310,10 +310,10 @@ if (search.trim()) {
               <div>
                 <h2 className="text-xl font-semibold text-white mb-2">About Us</h2>
                 <p className="text-slate-300">
-                  You may be wondering, “What exactly is this project?” To answer your question, SafeCircle is a project created for the Step Up Loudoun Youth Competition by 9th graders Aarmaan Pahuja and Aditya Ghosh, along with 7th graders Abhir Pahuja and Ayaan Priyal.
+                  You may be wondering, “What exactly is this project?” To answer your question, SafeLoudoun is a project created for the Step Up Loudoun Youth Competition by 9th graders Aarmaan Pahuja and Aditya Ghosh, along with 7th graders Abhir Pahuja and Ayaan Priyal.
 We all live in communities where neighbors look out for each other, but we noticed that there was not an easy way for people to quickly share important local updates. Whether it is an unattended package, a lost pet, suspicious activity, vandalism, or a request for a safe walk, important information can easily go unnoticed. We wanted to create a platform that helps communities stay connected, informed, and safer.
-SafeCircle is a real-time neighborhood safety platform where residents can report and track local incidents within their community. Users can view active reports, receive updates, communicate through comments, verify incidents, and monitor specific watch zones that matter to them. By making it easier for neighbors to work together, SafeCircle helps communities respond faster and support each other.
-However, technology alone cannot create a safer community. SafeCircle is designed to encourage awareness, responsibility, and cooperation between neighbors. The goal is not to expose problems, but to give communities the tools they need to help one another and prevent small issues from becoming bigger ones.
+SafeLoudoun is a real-time neighborhood safety platform where residents can report and track local incidents within their community. Users can view active reports, receive updates, communicate through comments, verify incidents, and monitor specific watch zones that matter to them. By making it easier for neighbors to work together, SafeLoudoun helps communities respond faster and support each other.
+However, technology alone cannot create a safer community. SafeLoudoun is designed to encourage awareness, responsibility, and cooperation between neighbors. The goal is not to expose problems, but to give communities the tools they need to help one another and prevent small issues from becoming bigger ones.
 Through this project, we hope to show how technology can bring people together and create stronger, more connected neighborhoods.
                 </p>
               </div>
