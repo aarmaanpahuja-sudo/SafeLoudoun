@@ -10,10 +10,6 @@ interface Props {
   onResolve: (id: string) => Promise<void>;
 }
 
-// Sensitive categories → show circle instead of pin
-const SENSITIVE_CATEGORIES = ["open_garage_door", "unattended_package"];
-const FUZZY_RADIUS_METERS = 800; // ~0.5 miles
-
 function buildPinIcon(color: string): L.DivIcon {
   return L.divIcon({
     className: "",
@@ -27,7 +23,7 @@ function buildPinIcon(color: string): L.DivIcon {
 export default function MapView({ incidents, activeZip, onResolve }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const layersRef = useRef<Record<string, L.Layer>>({});
+  const markersRef = useRef<Record<string, L.Marker>>({});
 
   const filtered = useMemo(
     () =>
@@ -37,7 +33,7 @@ export default function MapView({ incidents, activeZip, onResolve }: Props) {
     [incidents, activeZip]
   );
 
-  // Init map
+  // Init map once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -61,7 +57,7 @@ export default function MapView({ incidents, activeZip, onResolve }: Props) {
     };
   }, []);
 
-  // Recenter
+  // Recenter when active zip changes
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -78,77 +74,45 @@ export default function MapView({ incidents, activeZip, onResolve }: Props) {
     }
   }, [activeZip]);
 
-  // Sync markers + circles
+  // Sync markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     const currentIds = new Set(filtered.map((i) => i.id));
 
-    // Remove old layers
-    Object.keys(layersRef.current).forEach((id) => {
+    // Remove stale markers
+    Object.keys(markersRef.current).forEach((id) => {
       if (!currentIds.has(id)) {
-        map.removeLayer(layersRef.current[id]);
-        delete layersRef.current[id];
+        map.removeLayer(markersRef.current[id]);
+        delete markersRef.current[id];
       }
     });
 
+    // Add or update markers
     filtered.forEach((inc) => {
       if (inc.latitude == null || inc.longitude == null) return;
 
-      const isSensitive = SENSITIVE_CATEGORIES.includes(inc.category);
-      const existing = layersRef.current[inc.id];
+      const meta = CATEGORIES[inc.category];
+      const icon = buildPinIcon(meta.pinColor);
+      const existing = markersRef.current[inc.id];
 
-      if (isSensitive) {
-        // Circle for sensitive categories
-        if (existing && existing instanceof L.Circle) {
-          existing.setLatLng([inc.latitude, inc.longitude]);
-          existing.setRadius(FUZZY_RADIUS_METERS);
-          existing.setPopupContent(popupHtml(inc));
-        } else {
-          if (existing) map.removeLayer(existing);
-
-          const circle = L.circle([inc.latitude, inc.longitude], {
-            radius: FUZZY_RADIUS_METERS,
-            color: "#ef4444",
-            fillColor: "#ef4444",
-            fillOpacity: 0.15,
-            weight: 2,
-          }).addTo(map);
-
-          circle.bindPopup(popupHtml(inc));
-          circle.on("popupopen", (e) => {
-            const root = (e.popup.getElement() as HTMLElement)?.querySelector("[data-resolve]");
-            root?.addEventListener("click", async () => {
-              await onResolve(inc.id);
-            });
-          });
-
-          layersRef.current[inc.id] = circle;
-        }
+      if (existing) {
+        existing.setIcon(icon);
+        existing.setLatLng([inc.latitude, inc.longitude]);
+        existing.setPopupContent(popupHtml(inc));
       } else {
-        // Normal pin
-        const meta = CATEGORIES[inc.category];
-        const icon = buildPinIcon(meta.pinColor);
+        const marker = L.marker([inc.latitude, inc.longitude], { icon }).addTo(map);
+        marker.bindPopup(popupHtml(inc));
 
-        if (existing && existing instanceof L.Marker) {
-          existing.setIcon(icon);
-          existing.setLatLng([inc.latitude, inc.longitude]);
-          existing.setPopupContent(popupHtml(inc));
-        } else {
-          if (existing) map.removeLayer(existing);
-
-          const marker = L.marker([inc.latitude, inc.longitude], { icon }).addTo(map);
-          marker.bindPopup(popupHtml(inc));
-          marker.on("popupopen", (e) => {
-            const root = (e.popup.getElement() as HTMLElement)?.querySelector("[data-resolve]");
-            root?.addEventListener("click", async () => {
-              await onResolve(inc.id);
-            });
+        marker.on("popupopen", (e) => {
+          const root = (e.popup.getElement() as HTMLElement)?.querySelector("[data-resolve]");
+          root?.addEventListener("click", async () => {
+            await onResolve(inc.id);
           });
+        });
 
-          layersRef.current[inc.id] = marker;
-        }
+        markersRef.current[inc.id] = marker;
       }
     });
   }, [filtered, onResolve]);
