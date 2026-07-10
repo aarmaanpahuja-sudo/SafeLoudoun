@@ -276,11 +276,9 @@ if (search.trim()) {
             />
           ) : view === "analytics" ? (
             <AnalyticsView
-              incidents={activeZip ? filteredIncidents : data.incidents}
-              activeCount={activeCount}
-              resolvedCount={resolvedCount}
-              zones={data.zones}
-            />
+  incidents={activeZip ? filteredIncidents : data.incidents}
+  zones={data.zones}
+/>
           ) : view === "about" ? (
             // ==================== ABOUT PAGE ====================
             <div className="mx-auto max-w-2xl p-6 space-y-8">
@@ -579,15 +577,14 @@ function ZonesView({
 /* ---------- Analytics View ---------- */
 function AnalyticsView({
   incidents,
-  activeCount,
-  resolvedCount,
   zones,
 }: {
   incidents: ReturnType<typeof useWatchTowerData>["incidents"];
-  activeCount: number;
-  resolvedCount: number;
   zones: ReturnType<typeof useWatchTowerData>["zones"];
 }) {
+  // Calculate active and resolved counts from the incidents passed in
+  const activeCount = incidents.filter((i) => i.status === "active").length;
+  const resolvedCount = incidents.filter((i) => i.status === "resolved").length;
   const byCategory = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const i of incidents) counts[i.category] = (counts[i.category] || 0) + 1;
