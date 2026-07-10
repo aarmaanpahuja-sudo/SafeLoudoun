@@ -6,9 +6,10 @@ interface Props {
   lng: number;
   color: string;
   label?: string;
+  isSensitive?: boolean; // NEW
 }
 
-export default function MiniMap({ lat, lng, color, label }: Props) {
+export default function MiniMap({ lat, lng, color, label, isSensitive = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -18,7 +19,7 @@ export default function MiniMap({ lat, lng, color, label }: Props) {
     const map = L.map(containerRef.current, {
       center: [lat, lng],
       zoom: 15,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
       dragging: true,
       scrollWheelZoom: false,
@@ -28,23 +29,37 @@ export default function MiniMap({ lat, lng, color, label }: Props) {
       maxZoom: 19,
     }).addTo(map);
 
-    const icon = L.divIcon({
-      className: "",
-      html: `<div class="wt-pin" style="background:${color}"><div class="wt-pin-inner"></div></div>`,
-      iconSize: [26, 26],
-      iconAnchor: [13, 26],
-      popupAnchor: [0, -26],
-    });
+    if (isSensitive) {
+      // Show circle for sensitive categories
+      L.circle([lat, lng], {
+        radius: 800,
+        color: "#ef4444",
+        fillColor: "#ef4444",
+        fillOpacity: 0.2,
+        weight: 2,
+      }).addTo(map);
+    } else {
+      // Normal pin
+      const icon = L.divIcon({
+        className: "",
+        html: `<div class="wt-pin" style="background:${color}"><div class="wt-pin-inner"></div></div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 26],
+      });
+      L.marker([lat, lng], { icon }).addTo(map);
+    }
 
-    const marker = L.marker([lat, lng], { icon }).addTo(map);
-    if (label) marker.bindPopup(label);
+    if (label) {
+      L.marker([lat, lng]).bindPopup(label).addTo(map);
+    }
+
     mapRef.current = map;
 
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, [lat, lng, color, label]);
+  }, [lat, lng, color, label, isSensitive]);
 
   return (
     <div
