@@ -6,11 +6,22 @@ interface Props {
   lng: number;
   color: string;
   label?: string;
+
+  draggable?: boolean;
+  onMove?: (lat: number, lng: number) => void;
 }
 
-export default function MiniMap({ lat, lng, color, label }: Props) {
+export default function MiniMap({
+  lat,
+  lng,
+  color,
+  label,
+  draggable = false,
+  onMove,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -35,7 +46,19 @@ export default function MiniMap({ lat, lng, color, label }: Props) {
       iconAnchor: [13, 26],
     });
 
-    const marker = L.marker([lat, lng], { icon }).addTo(map);
+    const marker = L.marker([lat, lng], {
+  icon,
+  draggable,
+}).addTo(map);
+
+markerRef.current = marker;
+
+if (draggable && onMove) {
+  marker.on("dragend", () => {
+    const pos = marker.getLatLng();
+    onMove(pos.lat, pos.lng);
+  });
+}
 
     if (label) {
       marker.bindPopup(label);
@@ -44,11 +67,19 @@ export default function MiniMap({ lat, lng, color, label }: Props) {
     mapRef.current = map;
 
     return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [lat, lng, color, label]);
+  map.remove();
+  mapRef.current = null;
+  markerRef.current = null;
+};
+  }, [color, label]);
 
+  useEffect(() => {
+  if (!mapRef.current || !markerRef.current) return;
+
+  markerRef.current.setLatLng([lat, lng]);
+  mapRef.current.panTo([lat, lng], { animate: false });
+}, [lat, lng]);
+  
   return (
     <div
       ref={containerRef}
