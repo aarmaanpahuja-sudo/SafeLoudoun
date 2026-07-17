@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ThumbsUp, MessageSquare, MapPin, Send, ShieldCheck, Map as MapIcon } from "lucide-react";
+import { Check, ThumbsUp, MessageSquare, MapPin, Send, ShieldCheck, Maximize2 } from "lucide-react";
 import { CATEGORIES } from "../lib/categories";
 import type { Incident, Comment } from "../lib/supabase";
 import { timeAgo } from "../lib/geo";
