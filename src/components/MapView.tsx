@@ -8,6 +8,7 @@ interface Props {
   incidents: Incident[];
   activeZip: string | null;
   onResolve: (id: string) => Promise<void>;
+  selectedIncident?: Incident | null;
 }
 
 function buildPinIcon(color: string): L.DivIcon {
@@ -20,7 +21,7 @@ function buildPinIcon(color: string): L.DivIcon {
   });
 }
 
-export default function MapView({ incidents, activeZip, onResolve }: Props) {
+export default function MapView({ incidents, activeZip, onResolve, selectedIncident }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Record<string, L.Marker>>({});
@@ -73,6 +74,24 @@ export default function MapView({ incidents, activeZip, onResolve }: Props) {
       if (bounds.isValid()) map.fitBounds(bounds, { padding: [60, 60] });
     }
   }, [activeZip]);
+
+
+  useEffect(() => {
+  const map = mapRef.current;
+
+  if (!map || !selectedIncident) return;
+
+  if (
+    selectedIncident.latitude != null &&
+    selectedIncident.longitude != null
+  ) {
+    map.flyTo(
+      [selectedIncident.latitude, selectedIncident.longitude],
+      16,
+      { duration: 0.8 }
+    );
+  }
+}, [selectedIncident]);
 
   // Sync markers
   useEffect(() => {
