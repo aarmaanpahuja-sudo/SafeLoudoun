@@ -45,8 +45,13 @@ export default function App() {
   const [reportOpen, setReportOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "resolved">("active");
+  const [selectedIncident, setSelectedIncident] = useState<ReturnType<typeof useWatchTowerData>["incidents"][number] | null>(null);
 
   const zoneOptions = data.zones;
+  const openIncidentMap = (incident: ReturnType<typeof useWatchTowerData>["incidents"][number]) => {
+  setSelectedIncident(incident);
+  setView("map");
+};
 
   // ✅ Fixed: Now properly filters incidents based on user's watch zones
     const filteredIncidents = useMemo(() => {
@@ -260,10 +265,16 @@ if (search.trim()) {
               onVerify={data.verifyIncident}
               onComment={data.addComment}
               authorName={data.profile?.display_name || "Neighbor"}
+onOpenMap={openIncidentMap}
             />
           ) : view === "map" ? (
             <div className="h-[calc(100vh-13rem)] w-full overflow-hidden rounded-2xl border border-slate-800 md:h-[calc(100vh-9.5rem)]">
-              <MapView incidents={filteredIncidents} activeZip={activeZip} onResolve={data.resolveIncident} />
+              <MapView
+  incidents={filteredIncidents}
+  activeZip={activeZip}
+  onResolve={data.resolveIncident}
+  selectedIncident={selectedIncident}
+/>
             </div>
           ) : view === "zones" ? (
             <ZonesView
@@ -373,6 +384,7 @@ function FeedView({
   onVerify,
   onComment,
   authorName,
+onOpenMap,
 }: {
   incidents: ReturnType<typeof useWatchTowerData>["incidents"];
   comments: ReturnType<typeof useWatchTowerData>["comments"];
@@ -382,6 +394,7 @@ function FeedView({
   onVerify: ReturnType<typeof useWatchTowerData>["verifyIncident"];
   onComment: (incidentId: string, body: string, authorName: string) => Promise<unknown>;
   authorName: string;
+  onOpenMap: (incident: ReturnType<typeof useWatchTowerData>["incidents"][number]) => void;
 }) {
   const tabs: { id: "active" | "resolved" | "all"; label: string }[] = [
     { id: "active", label: "Active" },
@@ -424,6 +437,7 @@ function FeedView({
             onVerify={onVerify}
             onComment={onComment}
             authorName={authorName}
+onOpenMap={onOpenMap}
           />
         ))
       )}
