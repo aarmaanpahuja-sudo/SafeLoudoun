@@ -81,14 +81,14 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
   };
 
   const submit = async () => {
-    if (!category || !title.trim()) {
-      setErr("Please choose a category and add a title.");
+    if (!category) {
+      setErr("Please choose a category.");
       return;
     }
-    if (!validZip) {
-      setErr("Please enter a valid 5-digit zip code.");
-      return;
-    }
+    if (!coords) {
+  setErr("Please capture your location before posting.");
+  return;
+}
     setSubmitting(true);
     setErr(null);
     try {
@@ -98,9 +98,9 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
       }
       await onSubmit({
         category,
-        title: title.trim(),
-        description: description.trim(),
-        location_description: location.trim(),
+        title: title.trim() || category,
+description: description.trim(),
+location_description: "",
         zip_code: zip.trim(),
         latitude: latLng[0],
         longitude: latLng[1],
@@ -144,7 +144,10 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
                 return (
                   <button
                     key={c.id}
-                    onClick={() => setCategory(c.id)}
+                    onClick={() => {
+  setCategory(c.id);
+  setStep(2);
+}}
                     className={`group flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 ${
                       active
                         ? "border-slate-600 bg-slate-800/80 " + c.glow
@@ -190,21 +193,9 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
                   className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950/60 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all duration-200 focus:border-slate-500 focus:ring-2 focus:ring-slate-700/40"
                 />
               </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Location description
-                </label>
-                <input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Elm St & Oak Ave, near the park"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all duration-200 focus:border-slate-500 focus:ring-2 focus:ring-slate-700/40"
-                />
-              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-400">
-                    Zip code community
                   </label>
                   {zones.length > 0 ? (
                     <select
@@ -241,7 +232,7 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-400">
-                    Location pin (optional)
+                    Capture location
                   </label>
                   <button
                     onClick={requestGeo}
@@ -271,7 +262,7 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
               {geoStatus === "denied" && (
                 <p className="flex items-center gap-1.5 text-xs text-slate-500">
                   <MapPin size={12} />
-                  Location permission denied — you can still post without a pin.
+                  Location permission is required to post.
                 </p>
               )}
               {err && <p className="text-sm text-red-400">{err}</p>}
