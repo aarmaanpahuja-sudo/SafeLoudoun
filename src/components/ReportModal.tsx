@@ -85,10 +85,16 @@ export default function ReportModal({ open, onClose, zones, onSubmit }: Props) {
       setErr("Please choose a category.");
       return;
     }
+
+    if (!zip || !validZip) {
+      setErr("Please provide a valid 5-digit zip code.");
+      return;
+    }
+
     if (!coords) {
-  setErr("Please capture your location before posting.");
-  return;
-}
+      setErr("Please capture your location before posting.");
+      return;
+    }
     setSubmitting(true);
     setErr(null);
     try {
@@ -194,11 +200,12 @@ location_description: "",
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-400">
-                  </label>
-                  {zones.length > 0 ? (
-                    <select
+  <div>
+    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-400">
+      Zip code community
+    </label>
+    {zones.length > 0 ? (
+      <select
                       value={zip}
                       onChange={(e) => {
                         setZip(e.target.value);
@@ -216,13 +223,14 @@ location_description: "",
                     </select>
                   ) : (
                     <input
-                      value={zip}
-                      onChange={(e) => {
-                        setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
-                        setCoords(null);
-                        setGeoStatus("idle");
-                      }}
-                      placeholder="Enter 5-digit zip"
+  value={zip}
+  onChange={(e) => {
+    setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+    setCoords(null);
+    setGeoStatus("idle");
+    setErr(null);
+  }}
+  placeholder="Enter 5-digit zip"
                       inputMode="numeric"
                       className={`w-full rounded-lg border bg-slate-950/60 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all duration-200 focus:ring-2 focus:ring-slate-700/40 ${
                         zip && !validZip ? "border-red-500/50" : "border-slate-700 focus:border-slate-500"
